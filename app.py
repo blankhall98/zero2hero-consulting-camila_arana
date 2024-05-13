@@ -85,16 +85,29 @@ def graph_boxplot(data,column):
     plt.ylabel(column)
     plt.show()
 
+#graph distribution
+def graph_distribution(data,column):
+    plt.figure()
+    plt.title(f'Distribución de {column}')
+    plt.hist(data[column],bins=20,density=True)
+    plt.xlabel(column)
+    plt.ylabel('Densidad')
+    plt.show()
+
 #statistical summary
-def summary(data,column,historam=False,boxplot=False):
+def summary(data,column,historam=False,boxplot=False,distribution=False):
+    obs = len(data[column])
     mean = np.mean(data[column])
     sd = np.std(data[column])
-    print(f'La media de {column} es: {mean}'+'\n'+
+    print(f'Número de observaciones: {obs}'+'\n'+
+          f'La media de {column} es: {mean}'+'\n'+
           f'La desviación estándar de {column} es: {sd}')
     if historam:
         graph_histogram(data,column)
     if boxplot:
         graph_boxplot(data,column)
+    if distribution:
+        graph_distribution(data,column)
 
 
 ###### MAIN ######
@@ -112,10 +125,11 @@ if __name__ == '__main__':
     graph_relationship(data,'personales','limpieza',regression=True)
 
     #action 2: summary
-    #histogram and boxplot functions are optional
+    #histogram, boxplot and distribution functions are optional
     #summary(data,'personales')
     #summary(data,'personales',historam=True)
-    summary(data,'personales',historam=True,boxplot=True)
+    #summary(data,'personales',historam=True,boxplot=True)
+    summary(data,'personales',historam=True,boxplot=True,distribution=True)
     
     
     
