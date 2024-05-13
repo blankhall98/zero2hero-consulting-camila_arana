@@ -1,17 +1,19 @@
 ##### Importaciones #####
 # importar bibliotecas externas
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy.stats import linregress
+import matplotlib.pyplot as plt # para graficar
+import numpy as np # para operaciones matemáticas
+from scipy.stats import linregress # para regresión lineal
+import scipy.stats # para pruebas estadísticas
 
 ###### FUNCIONES ######
 #eliminate forviden characters
+#navega por cada caracter de la cadena y si no es un caracter permitido lo elimina
 def eliminate_forbidden_characters(string):
     #some strings end with '\r' character, this is a forbidden character
     if string[-2:] == '\r':
         string = string[:-2]
     #allowed characters
-    allowed = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',' ']
+    allowed = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',' ','.']
     corrected_string = ''
     for char in string:
         if char in allowed:
@@ -28,7 +30,7 @@ def read_base(route):
         data = {}
         #extract columns
         columns = db[0].split(',')
-        #clean columns
+        #clean columns names
         for i in range(len(columns)):
             columns[i] = eliminate_forbidden_characters(columns[i])
         for c in columns:
@@ -46,6 +48,12 @@ def read_base(route):
                 data[columns[i]].append(row[i])
 
     return data
+
+#describe database
+def describe_base(data):
+    print('Descripción de la base de datos'+'\n')
+    for key in data.keys():
+        print(f'{key}: data type: {type(data[key][0])}')
 
 #graph relationship
 def graph_relationship(data, var_x, var_y, regression=False):
@@ -72,7 +80,7 @@ def graph_relationship(data, var_x, var_y, regression=False):
 def graph_histogram(data,column):
     plt.figure()
     plt.title(f'Histograma de {column}')
-    plt.hist(data[column],bins=20)
+    plt.hist(data[column],bins=200)
     plt.xlabel(column)
     plt.ylabel('Frecuencia')
     plt.show()
@@ -89,25 +97,42 @@ def graph_boxplot(data,column):
 def graph_distribution(data,column):
     plt.figure()
     plt.title(f'Distribución de {column}')
-    plt.hist(data[column],bins=20,density=True)
+    plt.hist(data[column],bins=200,density=True)
     plt.xlabel(column)
     plt.ylabel('Densidad')
     plt.show()
 
+def prueba_jarque_bera(datos, clave):
+    # Extrae los datos asociados a la clave
+    valores = datos[clave]
+    # Realiza la prueba de Jarque-Bera
+    estadistico, p_valor = scipy.stats.jarque_bera(valores)
+    # Comprueba si la distribución se puede considerar normal (p > 0.05)
+    if p_valor > 0.05:
+        return True, p_valor  # Los datos siguen una distribución normal
+    else:
+        return False, p_valor  # Los datos no siguen una distribución normal
+
 #statistical summary
-def summary(data,column,historam=False,boxplot=False,distribution=False):
+def summary(data,column,histogram=False,boxplot=False,distribution=False,normality=False):
     obs = len(data[column])
     mean = np.mean(data[column])
     sd = np.std(data[column])
+    print(f'Resumen estadístico: {column}'+'\n')
     print(f'Número de observaciones: {obs}'+'\n'+
           f'La media de {column} es: {mean}'+'\n'+
           f'La desviación estándar de {column} es: {sd}')
-    if historam:
+    if histogram:
         graph_histogram(data,column)
     if boxplot:
         graph_boxplot(data,column)
     if distribution:
         graph_distribution(data,column)
+    if normality:
+        print(f'Prueba de Jarque-Bera para {column}'+'\n')
+        normal, p_value = prueba_jarque_bera(data,column)
+        print(f'Normalidad: {normal}')
+        print(f'P-valor: {p_value}')
 
 
 ###### MAIN ######
@@ -116,20 +141,23 @@ if __name__ == '__main__':
     #route and data
     ## ruta de la base de datos
     route = 'data/ENIGHDB.csv'
+    ## leer la base de datos, limpiarla y guardarla en un diccionario
     data = read_base(route)
 
-    print(data.keys())
+    #action 0: describe database
+    describe_base(data)    
 
     #action 1: graph relationship
-    #graph_relationship(data,'personales','limpieza')
-    graph_relationship(data,'personales','limpieza',regression=True)
+    #graph_relationship(data,'personales','gastomon')
+    graph_relationship(data,'gastomon','personales',regression=True)
 
     #action 2: summary
     #histogram, boxplot and distribution functions are optional
     #summary(data,'personales')
-    #summary(data,'personales',historam=True)
-    #summary(data,'personales',historam=True,boxplot=True)
-    summary(data,'personales',historam=True,boxplot=True,distribution=True)
+    #summary(data,'gastomon',histogram=True)
+    #summary(data,'personales',histogram=True,boxplot=True)
+    #summary(data,'gastomon',histogram=True,boxplot=True,distribution=True)
+    summary(data,'gastomon',histogram=True,distribution=True,normality=True)
     
     
     
